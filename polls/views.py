@@ -15,7 +15,7 @@ def generate_pdf(request):
     pdf = MakePdf.print_pdf()
 
     response = HttpResponse(pdf, content_type='application/pdf')
-    content = "attachment; filename=pols.pdf"
+    content = "attachment; filename=polls.pdf"
     response['Content-Disposition'] = content
     return response
 

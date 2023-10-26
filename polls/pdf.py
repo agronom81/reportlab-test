@@ -25,8 +25,8 @@ pdfmetrics.registerFont(TTFont('OpenSansB', os.path.join(fonts_dir, 'OpenSansBol
 PAGE_SIZE = A4
 RIGHT_MARGIN = 15
 LEFT_MARGIN = 15
-TOP_MARGIN = 15
-BOTTOM_MARGIN = 15
+TOP_MARGIN = 35
+BOTTOM_MARGIN = 55
 
 
 def get_simple_doc_template(is_landscape=False, default_page_size=PAGE_SIZE):
@@ -49,6 +49,8 @@ def get_sample_styles():
     styles = getSampleStyleSheet()
     styles.add(ParagraphStyle(name='PageHeader', fontName='OpenSansB', alignment=TA_CENTER, spaceAfter=15,
                               fontSize=14))
+    styles.add(ParagraphStyle(name='EachPageHeader', fontName='OpenSans', alignment=TA_CENTER, spaceAfter=15,
+                              fontSize=10))
     styles.add(ParagraphStyle(name='TableHeader', fontName='OpenSansB', alignment=TA_CENTER, spaceAfter=10,
                               spaceBefore=10))
     styles.add(ParagraphStyle(name='TableCell', alignment=TA_CENTER, fontSize=8))
@@ -90,7 +92,7 @@ class NumberedCanvas(canvas.Canvas):
 
     def draw_page_number(self, page_count):
         # Change the position of this to wherever you want the page number to be
-        self.drawRightString(211 * mm, 15 * mm + (0.2 * inch),
+        self.drawRightString(205 * mm, 15 * mm + (0.2 * inch),
                              "Page %d of %d" % (self._pageNumber, page_count))
 
 
@@ -100,15 +102,15 @@ class MakePdf:
     def _header_footer(canvas_instance, doc):
         # Save the state of our canvas so we can draw on it
         canvas_instance.saveState()
-        styles = getSampleStyleSheet()
+        styles = get_sample_styles()
 
         # Header
-        header = Paragraph('This is a multi-line header.  It goes on every page.   ' * 5, styles['Normal'])
+        header = Paragraph('This is a multi-line header.  It goes on every page.', styles['EachPageHeader'])
         w, h = header.wrap(doc.width, doc.topMargin)
         header.drawOn(canvas_instance, doc.leftMargin, doc.height + doc.topMargin - h)
 
         # Footer
-        footer = Paragraph('This is a multi-line footer.  It goes on every page.   ' * 5, styles['Normal'])
+        footer = Paragraph('This is a multi-line footer.  It goes on every page.', styles['Normal'])
         w, h = footer.wrap(doc.width, doc.bottomMargin)
         footer.drawOn(canvas_instance, doc.leftMargin, h)
 
@@ -143,7 +145,8 @@ class MakePdf:
         table.setStyle(tbl_style)
 
         elements.append(table)
-        doc.build(elements)
+        doc.build(elements, onFirstPage=MakePdf._header_footer, onLaterPages=MakePdf._header_footer,
+                  canvasmaker=NumberedCanvas)
         pdf = buffer.getvalue()
         buffer.close()
         return pdf
